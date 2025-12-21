@@ -35,7 +35,8 @@ def get_introduce(illust: db.Illust):
 
 # multi_send_file 为多个文件的情况, send_file为None, 为动图
 async def send_medias(illust: str, page, session: sqlalchemy.orm.Session, context: ContextTypes.DEFAULT_TYPE,
-                      send_preview: Union[List, bytes], send_file: Union[List, None], introduce, is_ugoira, have_sent: List,
+                      send_preview: Union[List, bytes], send_file: Union[List, None], introduce, is_ugoira,
+                      have_sent: List,
                       spoiler=False, thumbnail=None, multi_send_file=None):
     channels = config.get_channel_id()
 
@@ -49,11 +50,16 @@ async def send_medias(illust: str, page, session: sqlalchemy.orm.Session, contex
             have_sent += [{"message_id": i.message_id, "channel": channel} for i in preview_message]
 
         else:
-            preview_message = await retry(context.bot.sendAnimation, 5, 0, chat_id=channel, animation=send_preview,
-                                          parse_mode='HTML', filename=f"{illust}.gif"
-                                          , caption=introduce, has_spoiler=spoiler, thumbnail=thumbnail
-                                          , pool_timeout=600, read_timeout=600, write_timeout=600
-                                          , connect_timeout=600)
+            # preview_message = await retry(context.bot.sendAnimation, 5, 0, chat_id=channel, animation=send_preview,
+            #                               parse_mode='HTML', filename=f"{illust}.gif"
+            #                               , caption=introduce, has_spoiler=spoiler, thumbnail=thumbnail
+            #                               , pool_timeout=600, read_timeout=600, write_timeout=600
+            #                               , connect_timeout=600)
+            preview_message = await retry(context.bot.sendVideo, 5, 0, chat_id=channel,
+                                          video=send_preview, filename=f"{illust}.gif",
+                                          parse_mode='HTML', caption=introduce, has_spoiler=spoiler,
+                                          thumbnail=thumbnail, pool_timeout=600, read_timeout=600,
+                                          write_timeout=600, connect_timeout=600)
             have_sent.append({"message_id": preview_message.message_id, "channel": channel})
             preview_message = [preview_message]  # 对下面reply_to_message_id=preview_message[0]的兼容
 

@@ -69,16 +69,24 @@ async def get_ugoira_gif(file: bytes, meta, tmp_path, max_size=1024 * 1024 * 50)
 
     # gif参数
     gif_fps = 1000 / meta["frames"][0]["delay"]
-    gif_file_name = "tmp.gif"
+    # gif_file_name = "tmp.gif"
+    gif_file_name = "tmp.mp4"
     gif_frame_extension = meta["frames"][0]["file"].rsplit(".", 1)[1]
     gif_frame_name_length = len(meta["frames"][0]["file"].split(".", 1)[0])
+    # 0-51  越大文件质量越差，文件越小
+    # quality = "18"
+    quality = "23"
+    # quality = "28"
 
     logger.debug(f"ugoira gif: fps: {gif_fps}, extension: {gif_frame_extension}, name_length: {gif_frame_name_length}")
 
     # ffmpeg生成gif
+    # process = await asyncio.create_subprocess_shell(
+    #     f"ffmpeg -framerate {gif_fps} -i {tmp_path}/%0{gif_frame_name_length}d.{gif_frame_extension} -vf \"split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse\" {os.path.join(tmp_path, gif_file_name)}"
+    #     , stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, shell=True)
     process = await asyncio.create_subprocess_shell(
-        f"ffmpeg -framerate {gif_fps} -i {tmp_path}/%0{gif_frame_name_length}d.{gif_frame_extension} -vf \"split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse\" {os.path.join(tmp_path, gif_file_name)}"
-        , stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, shell=True)
+        f"ffmpeg -framerate {gif_fps} -i {tmp_path}/%0{gif_frame_name_length}d.{gif_frame_extension} -c:v libx264 -preset medium -crf {quality} -pix_fmt yuv420p {os.path.join(tmp_path, gif_file_name)}"
+    )
     stdout, stderr = await process.communicate()
     if process.returncode != 0:
         raise Exception(
@@ -89,6 +97,7 @@ async def get_ugoira_gif(file: bytes, meta, tmp_path, max_size=1024 * 1024 * 50)
 
     # 压缩
     if len(gif) >= max_size:
+        raise Exception("Generated video file size exceed the required max file size!")
         logger.debug(f"ugoira gif: gif size > max_size, gif size: {len(gif)}, max_size: {max_size}")
         rate = math.sqrt(max_size / len(gif)) * 0.95  # 计算压缩图像的比例
         del gif
