@@ -44,7 +44,6 @@ async def start_backup_task(context: ContextTypes.DEFAULT_TYPE):
             await context.bot.sendDocument(chat_id=config.admin, document=str(e), filename="error.log")
         traceback.print_exception(type(e), e, e.__traceback__)
         logger.error(f"backup db error: {e}")
-        return
     lock.unlock()
 
 

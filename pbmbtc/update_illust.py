@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 
 from telegram.ext import ContextTypes
 from . import db
@@ -15,10 +16,14 @@ async def updateBackup(context: ContextTypes.DEFAULT_TYPE):
         await context.bot.sendMessage(chat_id=config.admin, text="isLock,跳过此次备份")
         return
     lock.lock()
+    try:
+        for i in range(config.backup_number_ontime):
 
-    for i in range(config.backup_number_ontime):
-
-        await backup.send_backup(None, context)
+            await backup.send_backup(None, context)
+    except Exception as e:
+        traceback.print_exception(type(e), e, e.__traceback__)
+        logger.error(f"Backup illust error: {e}")
+        await context.bot.sendMessage(chat_id=config.admin, text=f"备份收藏发生错误: {e}, 详情查看后台日志")
 
     logger.info("backup task completed")
 
