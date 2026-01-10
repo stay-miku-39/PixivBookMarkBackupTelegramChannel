@@ -1,4 +1,7 @@
 # import requests
+import asyncio
+from getpass import fallback_getpass
+
 import httpx
 import json
 import logging
@@ -35,8 +38,13 @@ async def get_bookmarks(cookie: str, user: str):
     logger.debug(f"user: {user}")
 
     # 分页循环获取所有收藏作品
+    first = True
     while 1:
-        logger.debug(f"page: {page}")
+        logger.debug(f"page: {page}" + "" if first else "  delay 0.5s")
+        if first:
+            first = False
+        else:
+            await asyncio.sleep(0.5)
         async with httpx.AsyncClient() as client:
             response = await retry(client.get, 5, 0,
                                    url="https://www.pixiv.net/ajax/user/{}/illusts/bookmarks?tag=&offset={}&limit={}&rest=show"
