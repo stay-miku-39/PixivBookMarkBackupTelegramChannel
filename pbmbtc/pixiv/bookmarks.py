@@ -40,7 +40,7 @@ async def get_bookmarks(cookie: str, user: str):
     # 分页循环获取所有收藏作品
     first = True
     while 1:
-        logger.debug(f"page: {page}" + "" if first else "  delay 0.5s")
+        logger.debug(f"page: {page}" + ("" if first else "  delay 0.5s"))
         if first:
             first = False
         else:
